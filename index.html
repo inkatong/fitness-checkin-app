@@ -15,6 +15,23 @@
       --text: #1f2937;
       --muted: #6b7280;
       --line: #e5e7eb;
+      --accent: #2563eb;<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="运动打卡" />
+  <meta name="theme-color" content="#2563eb" />
+  <title>运动督促小程序</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
       --accent: #2563eb;
       --accent-2: #1d4ed8;
       --good: #059669;
@@ -610,6 +627,13 @@
       }
     }
 
+    function startReminderWatcher() {
+      checkReminder();
+      setInterval(() => {
+        checkReminder();
+      }, 30000);
+    }
+
     function detectOpenMode() {
       const isFile = location.protocol === "file:";
       const ua = navigator.userAgent || "";
@@ -674,7 +698,13 @@
     renderAll();
     detectOpenMode();
     addChat("bot", "我在这儿。今天四项运动里，你准备先完成哪一项？");
-    checkReminder();
+    startReminderWatcher();
+
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        checkReminder();
+      }
+    });
   </script>
 </body>
 </html>
