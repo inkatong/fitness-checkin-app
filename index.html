@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="运动打卡" />
+  <meta name="theme-color" content="#2563eb" />
+  <title>运动督促小程序</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --accent: #2563eb;
+      --accent-2: #1d4ed8;
+      --good: #059669;
+      --warn: #dc2626;
+      --soft: #eff6ff;
+      --shadow: 0 10px 30px rgba(0,0,0,0.08);
+      --radius: 18px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 40%, #f8fafc 100%);
+      color: var(--text);
+      -webkit-text-size-adjust: 100%;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+    }
+
+    .app {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 14px 14px calc(30px + var(--safe-bottom));
+    }
+
+    .hero, .card, .banner {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #2563eb 0%, #3b82f6 60%, #60a5fa 100%);
+      color: white;
+    }
+
+    .banner {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      display: none;
+    }
+
+    .install-tip {
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+      color: #0f172a;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    .hero h1 { font-size: 25px; margin-bottom: 8px; }
+    .hero p { line-height: 1.55; opacity: 0.96; }
+    .date { margin-top: 12px; font-size: 14px; opacity: 0.92; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .stat {
+      background: rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 14px;
+      padding: 12px;
+      min-height: 82px;
+    }
+    .stat .label { font-size: 12px; opacity: 0.9; margin-bottom: 6px; }
+    .stat .value { font-size: 22px; font-weight: 700; }
+
+    .section-title {
+      font-size: 19px;
+      margin-bottom: 12px;
+    }
+
+    .exercise-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .exercise-item {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #fbfdff;
+    }
+
+    .exercise-name { font-size: 17px; font-weight: 700; }
+    .exercise-meta { color: var(--muted); font-size: 13px; }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: transform .12s ease, opacity .12s ease, background .12s ease;
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+    button:active { transform: scale(0.98); }
+
+    .primary { background: var(--accent); color: white; }
+    .primary:hover { background: var(--accent-2); }
+    .softbtn { background: #e0ecff; color: #1d4ed8; }
+    .ghost { background: #f3f4f6; color: #374151; }
+    .danger { background: #fee2e2; color: #b91c1c; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #eef2ff;
+      color: #3730a3;
+    }
+
+    .pill.done {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    textarea, input[type="text"], input[type="time"] {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 16px;
+      outline: none;
+      background: white;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    textarea { min-height: 96px; resize: vertical; }
+    .hint { font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
+
+    .chat {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 360px;
+      overflow: auto;
+      padding-right: 4px;
+      scroll-behavior: smooth;
+    }
+    .bubble {
+      max-width: 88%;
+      padding: 12px 14px;
+      border-radius: 16px;
+      line-height: 1.55;
+      font-size: 15px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .bot {
+      align-self: flex-start;
+      background: #eef4ff;
+      color: #1e3a8a;
+    }
+    .me {
+      align-self: flex-end;
+      background: #2563eb;
+      color: white;
+    }
+
+    .history-item {
+      border-top: 1px solid var(--line);
+      padding: 10px 0;
+      font-size: 14px;
+      color: #374151;
+      line-height: 1.55;
+    }
+    .history-item:first-child { border-top: none; padding-top: 0; }
+
+    .footer-note {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .small-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .sticky-bar {
+      position: sticky;
+      bottom: 0;
+      padding-top: 10px;
+      margin-top: 10px;
+      background: linear-gradient(180deg, rgba(245,247,251,0) 0%, rgba(245,247,251,0.96) 28%, rgba(245,247,251,1) 100%);
+    }
+
+    @media (max-width: 640px) {
+      .stats, .exercise-list {
+        grid-template-columns: 1fr;
+      }
+      .hero h1 { font-size: 22px; }
+      .app { padding-left: 12px; padding-right: 12px; }
+      .card, .hero, .banner { padding: 16px; }
+      .row > button { flex: 1 1 auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="banner" id="previewWarning">
+      <div class="small-title">这个页面像是被“文件预览”打开了</div>
+      <p style="line-height:1.6;">如果你现在点按钮没反应，通常不是程序坏了，而是打开方式不对。请在 <strong>Safari</strong> 里打开，或者把它放到一个网页链接中再打开。</p>
+      <div class="hint">最稳的方法：用电脑开本地网页服务，再让手机 Safari 访问。</div>
+    </section>
+
+    <section class="banner install-tip" id="installTip">
+      <div class="small-title">手机上更好用的方式</div>
+      <p style="line-height:1.6;">在 Safari 中打开后，点底部“分享” → “添加到主屏幕”，以后就能像 App 一样点开使用。</p>
+    </section>
+
+    <section class="hero">
+      <h1>你的运动督促小程序</h1>
+      <p id="dailyMessage">今天不是“想不想练”，而是“先开始 5 分钟”。你一动起来，状态就会跟上。</p>
+      <div class="date" id="todayLine"></div>
+      <div class="stats">
+        <div class="stat">
+          <div class="label">连续打卡</div>
+          <div class="value" id="streakValue">0 天</div>
+        </div>
+        <div class="stat">
+          <div class="label">今日完成</div>
+          <div class="value" id="doneCount">0 / 4</div>
+        </div>
+        <div class="stat">
+          <div class="label">总打卡次数</div>
+          <div class="value" id="totalValue">0</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">今日运动项目</h2>
+      <div class="exercise-list" id="exerciseList"></div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">每日催促设置</h2>
+      <div class="row" style="margin-bottom: 10px;">
+        <input type="time" id="reminderTime" />
+        <button class="primary" id="saveReminderBtn">保存提醒时间</button>
+      </div>
+      <div class="hint">
+        这是网页内提醒：你打开这个页面时，如果已经过了提醒时间且今天还没完成，会弹出催促。
+        <br />
+        在 iPhone 上，推荐用 Safari 打开，再“添加到主屏幕”。
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">和程序互动</h2>
+      <div class="chat" id="chatBox"></div>
+      <div style="margin-top: 12px; display: grid; gap: 10px;">
+        <textarea id="feedbackInput" placeholder="比如：我今天不想跑步，很累 / 我做完平板了 / 给我狠一点的催促 / 今天状态不错"></textarea>
+        <div class="row">
+          <button class="primary" id="sendFeedbackBtn">发送反馈</button>
+          <button class="softbtn" id="needPushBtn">让我现在去运动</button>
+          <button class="ghost" id="praiseBtn">夸夸我</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">今日备注</h2>
+      <textarea id="noteInput" placeholder="记录一下今天的运动感受，比如：跑步 20 分钟，有点喘，但完成了"></textarea>
+      <div class="row" style="margin-top: 10px;">
+        <button class="primary" id="saveNoteBtn">保存备注</button>
+        <button class="ghost" id="loadTemplateBtn">帮我生成一句今日总结</button>
+      </div>
+      <div class="hint">备注会保存在你的浏览器本地，不用联网。</div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">最近记录</h2>
+      <div id="historyBox"></div>
+    </section>
+
+    <section class="card">
+      <div class="small-title">在手机上怎么打开才稳</div>
+      <p class="footer-note">
+        1. 不要在微信预览器里直接打开。<br />
+        2. 最好用 Safari 打开真正的网址。<br />
+        3. 如果你是从电脑传文件到手机，建议先在电脑运行本地网页服务，再用手机 Safari 访问。<br />
+        4. 访问成功后，把它“添加到主屏幕”，以后就像一个 App。
+      </p>
+    </section>
+
+    <div class="sticky-bar">
+      <div class="row">
+        <button class="primary" id="quickStretchBtn">我先做拉伸</button>
+        <button class="ghost" id="quickRunBtn">我先去跑步</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "fitness_vibe_app_v2";
+    const exercises = ["跑步", "平板支撑", "哑铃", "拉伸"];
+
+    const motivationalLines = [
+      "今天别追求完美，先完成一项就已经赢了。",
+      "你不是在折磨自己，你是在把状态一点点练回来。",
+      "先动 5 分钟，很多时候真正难的是开始。",
+      "今天的坚持，会让明天的你感谢现在的自己。",
+      "就算只能做一点，也比完全不动强很多。"
+    ];
+
+    const pushLines = [
+      "别等状态好了再练，很多时候是练了以后状态才会变好。",
+      "你现在最需要的不是犹豫，而是先完成第一项。",
+      "哪怕只做平板支撑 30 秒，也算今天向前迈了一步。",
+      "不想练的时候，最适合先做拉伸，把身体叫醒。",
+      "去做一点点。完成比想象重要。"
+    ];
+
+    const praiseLines = [
+      "今天愿意打开这个程序，你已经比躺平的时候更认真了。",
+      "你不是三分钟热度，你是在慢慢建立新的习惯。",
+      "就算今天只完成一项，也值得被肯定。",
+      "坚持不是每次都很猛，而是一次次没有放弃。",
+      "你做得很好，继续把今天过完整。"
+    ];
+
+    function getTodayStr() {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    }
+
+    function getDefaultState() {
+      return {
+        reminderTime: "19:30",
+        totalCheckins: 0,
+        streak: 0,
+        lastActiveDate: "",
+        notes: {},
+        history: [],
+        todayRecords: {}
+      };
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("fitness_vibe_app_v1");
+        if (!raw) return getDefaultState();
+        return { ...getDefaultState(), ...JSON.parse(raw) };
+      } catch {
+        return getDefaultState();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function ensureTodayData() {
+      const today = getTodayStr();
+      if (!state.todayRecords[today]) {
+        state.todayRecords[today] = {};
+        exercises.forEach(name => {
+          state.todayRecords[today][name] = false;
+        });
+      }
+    }
+
+    function randomPick(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function getDoneCount() {
+      const today = getTodayStr();
+      ensureTodayData();
+      return exercises.filter(name => state.todayRecords[today][name]).length;
+    }
+
+    function hasDoneToday() {
+      return getDoneCount() > 0;
+    }
+
+    function updateStreakOnFirstCheckin() {
+      const today = new Date();
+      const todayStr = getTodayStr();
+      if (state.lastActiveDate === todayStr) return;
+
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const y = yesterday.getFullYear();
+      const m = String(yesterday.getMonth() + 1).padStart(2, "0");
+      const d = String(yesterday.getDate()).padStart(2, "0");
+      const yesterdayStr = `${y}-${m}-${d}`;
+
+      if (state.lastActiveDate === yesterdayStr) {
+        state.streak += 1;
+      } else {
+        state.streak = 1;
+      }
+      state.lastActiveDate = todayStr;
+    }
+
+    function addHistory(text) {
+      state.history.unshift({
+        time: new Date().toLocaleString("zh-CN"),
+        text
+      });
+      state.history = state.history.slice(0, 20);
+    }
+
+    function renderHeader() {
+      const today = new Date();
+      document.getElementById("todayLine").textContent = `今天是 ${today.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" })}`;
+      document.getElementById("streakValue").textContent = `${state.streak} 天`;
+      document.getElementById("doneCount").textContent = `${getDoneCount()} / 4`;
+      document.getElementById("totalValue").textContent = String(state.totalCheckins);
+      document.getElementById("dailyMessage").textContent = randomPick(motivationalLines);
+      document.getElementById("reminderTime").value = state.reminderTime || "19:30";
+    }
+
+    function renderExercises() {
+      const box = document.getElementById("exerciseList");
+      const today = getTodayStr();
+      ensureTodayData();
+      box.innerHTML = "";
+
+      exercises.forEach(name => {
+        const done = !!state.todayRecords[today][name];
+        const div = document.createElement("div");
+        div.className = "exercise-item";
+        div.innerHTML = `
+          <div>
+            <div class="exercise-name">${name}</div>
+            <div class="exercise-meta">${done ? "今天已打卡" : "今天还没完成"}</div>
+          </div>
+          <div>
+            <span class="pill ${done ? "done" : ""}">${done ? "已完成" : "待完成"}</span>
+          </div>
+          <div class="row">
+            <button class="primary">${done ? "再次完成" : "打卡完成"}</button>
+            <button class="ghost">给我建议</button>
+          </div>
+        `;
+        const [btnDone, btnAdvice] = div.querySelectorAll("button");
+        btnDone.addEventListener("click", () => markDone(name));
+        btnAdvice.addEventListener("click", () => giveAdvice(name, done));
+        box.appendChild(div);
+      });
+    }
+
+    function addChat(role, text) {
+      const chat = document.getElementById("chatBox");
+      const bubble = document.createElement("div");
+      bubble.className = `bubble ${role}`;
+      bubble.textContent = text;
+      chat.appendChild(bubble);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function renderHistory() {
+      const box = document.getElementById("historyBox");
+      if (!state.history.length) {
+        box.innerHTML = `<div class="hint">还没有记录，今天先完成第一项运动吧。</div>`;
+        return;
+      }
+      box.innerHTML = state.history.map(item => `
+        <div class="history-item">
+          <strong>${item.time}</strong><br />${item.text}
+        </div>
+      `).join("");
+    }
+
+    function markDone(name) {
+      const today = getTodayStr();
+      ensureTodayData();
+      const wasDone = state.todayRecords[today][name];
+      state.todayRecords[today][name] = true;
+
+      if (!wasDone) {
+        state.totalCheckins += 1;
+        updateStreakOnFirstCheckin();
+        addHistory(`完成了 ${name}`);
+        addChat("bot", `收到，${name} 已打卡。不错，今天又推进了一步。现在你已经完成 ${getDoneCount()} / 4 项。`);
+      } else {
+        addChat("bot", `你又完成了一次 ${name}。这说明你不是凑数，你是在认真做。`);
+      }
+
+      saveState();
+      renderAll();
+    }
+
+    function giveAdvice(name, done) {
+      let text = "";
+      if (done) {
+        text = `${name} 今天已经完成了。你可以选择补一点轻松版，或者把重点放到还没完成的项目上。`;
+      } else if (name === "跑步") {
+        text = "跑步不一定要很久。先从 10 分钟快走或慢跑开始，让身体进入状态。";
+      } else if (name === "平板支撑") {
+        text = "平板支撑可以从 20 到 30 秒开始，分 2 到 3 组，不必一口气撑很久。";
+      } else if (name === "哑铃") {
+        text = "哑铃今天可以先做最简单的动作，比如弯举、推举，各 8 到 12 次。";
+      } else if (name === "拉伸") {
+        text = "拉伸最适合当作开始动作。先拉开肩、腿后侧和腰背，身体会更愿意动起来。";
+      }
+      addChat("bot", text);
+    }
+
+    function analyzeFeedback(text) {
+      const t = text.trim();
+      if (!t) return "你可以直接告诉我今天的状态，比如‘很累’、‘不想动’、‘我做完了跑步’。";
+
+      if (/(累|困|不想|烦|懒|拖延)/.test(t)) {
+        return "我知道你现在不想动。但今天不用追求完整训练，先做一项最轻的：拉伸 5 分钟，或者平板支撑 20 秒。先开始，后面再说。";
+      }
+      if (/(做完|完成|打卡|练了|跑了)/.test(t)) {
+        return "很好，完成就是最有力的反馈。别小看今天这一下，它是在帮你把习惯真正固定下来。";
+      }
+      if (/(夸|表扬|鼓励)/.test(t)) {
+        return randomPick(praiseLines);
+      }
+      if (/(狠|骂醒|催|逼)/.test(t)) {
+        return "那我直说：你现在最需要的不是再想想，而是立刻站起来，把第一项做掉。哪怕只有 5 分钟，也比继续拖延强。";
+      }
+      if (/(开心|不错|状态好)/.test(t)) {
+        return "状态不错就别浪费，趁顺的时候多完成一项，今天很适合把节奏立住。";
+      }
+      return "我收到了。无论你现在状态如何，今天都可以用‘先完成最小一项’的方式继续前进。你现在最想先做哪一项：跑步、平板支撑、哑铃，还是拉伸？";
+    }
+
+    function saveNote() {
+      const note = document.getElementById("noteInput").value.trim();
+      const today = getTodayStr();
+      state.notes[today] = note;
+      addHistory(note ? `保存了今日备注：${note}` : "清空了今日备注");
+      saveState();
+      renderHistory();
+      addChat("bot", note ? "今日备注已保存。以后你回头看，会更容易发现自己是在慢慢进步。" : "今日备注已清空。你也可以晚点再写。");
+    }
+
+    function loadTodayNote() {
+      const today = getTodayStr();
+      document.getElementById("noteInput").value = state.notes[today] || "";
+    }
+
+    function generateSummaryTemplate() {
+      const done = exercises.filter(name => state.todayRecords[getTodayStr()][name]);
+      const text = done.length
+        ? `今天完成了：${done.join("、")}。现在的感受是：______。明天我想继续保持的项目是：______。`
+        : "今天还没正式开始运动，但我已经打开了程序。接下来我准备先做：______。完成后我的感受：______。";
+      document.getElementById("noteInput").value = text;
+      addChat("bot", "我已经帮你生成了一句今日总结模板，填空就行。");
+    }
+
+    function checkReminder() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, "0");
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      const current = `${hh}:${mm}`;
+      const today = getTodayStr();
+      const remindKey = `reminded_${today}`;
+
+      if (current >= state.reminderTime && !hasDoneToday() && !sessionStorage.getItem(remindKey)) {
+        sessionStorage.setItem(remindKey, "1");
+        addChat("bot", `现在已经 ${state.reminderTime} 之后了，今天你还没开始。先别想太多，从拉伸或平板支撑选一个，马上开始。`);
+        setTimeout(() => {
+          try { alert("今天还没运动，先完成一项吧。"); } catch (e) {}
+        }, 120);
+      }
+    }
+
+    function detectOpenMode() {
+      const isFile = location.protocol === "file:";
+      const ua = navigator.userAgent || "";
+      const isIPhone = /iPhone|iPad|iPod/i.test(ua);
+      const isStandalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+      if (isFile && isIPhone && !isStandalone) {
+        document.getElementById("previewWarning").style.display = "block";
+      }
+
+      if (isIPhone && !isStandalone) {
+        document.getElementById("installTip").style.display = "block";
+      }
+    }
+
+    function renderAll() {
+      renderHeader();
+      renderExercises();
+      renderHistory();
+      loadTodayNote();
+    }
+
+    const state = loadState();
+    ensureTodayData();
+
+    document.getElementById("saveReminderBtn").addEventListener("click", () => {
+      state.reminderTime = document.getElementById("reminderTime").value || "19:30";
+      saveState();
+      addChat("bot", `提醒时间已保存为 ${state.reminderTime}。记得在这个时间前至少完成一项。`);
+    });
+
+    document.getElementById("sendFeedbackBtn").addEventListener("click", () => {
+      const input = document.getElementById("feedbackInput");
+      const text = input.value.trim();
+      if (!text) return;
+      addChat("me", text);
+      const reply = analyzeFeedback(text);
+      addChat("bot", reply);
+      input.value = "";
+    });
+
+    document.getElementById("feedbackInput").addEventListener("keydown", (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById("sendFeedbackBtn").click();
+      }
+    });
+
+    document.getElementById("needPushBtn").addEventListener("click", () => {
+      addChat("bot", randomPick(pushLines));
+    });
+
+    document.getElementById("praiseBtn").addEventListener("click", () => {
+      addChat("bot", randomPick(praiseLines));
+    });
+
+    document.getElementById("saveNoteBtn").addEventListener("click", saveNote);
+    document.getElementById("loadTemplateBtn").addEventListener("click", generateSummaryTemplate);
+    document.getElementById("quickStretchBtn").addEventListener("click", () => markDone("拉伸"));
+    document.getElementById("quickRunBtn").addEventListener("click", () => markDone("跑步"));
+
+    renderAll();
+    detectOpenMode();
+    addChat("bot", "我在这儿。今天四项运动里，你准备先完成哪一项？");
+    checkReminder();
+  </script>
+</body>
+</html>
