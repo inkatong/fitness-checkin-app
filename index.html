@@ -15,23 +15,6 @@
       --text: #1f2937;
       --muted: #6b7280;
       --line: #e5e7eb;
-      --accent: #2563eb;<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="运动打卡" />
-  <meta name="theme-color" content="#2563eb" />
-  <title>运动督促小程序</title>
-  <style>
-    :root {
-      --bg: #f5f7fb;
-      --card: #ffffff;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --line: #e5e7eb;
       --accent: #2563eb;
       --accent-2: #1d4ed8;
       --good: #059669;
@@ -275,16 +258,16 @@
       <div class="date" id="todayLine"></div>
       <div class="stats">
         <div class="stat">
-          <div class="label">连续打卡</div>
+          <div class="label">当前连续</div>
           <div class="value" id="streakValue">0 天</div>
         </div>
         <div class="stat">
-          <div class="label">今日完成</div>
-          <div class="value" id="doneCount">0 / 4</div>
+          <div class="label">历史最长</div>
+          <div class="value" id="bestStreakValue">0 天</div>
         </div>
         <div class="stat">
-          <div class="label">总打卡次数</div>
-          <div class="value" id="totalValue">0</div>
+          <div class="label">累计打卡天数</div>
+          <div class="value" id="totalDaysValue">0 天</div>
         </div>
       </div>
     </section>
@@ -394,6 +377,7 @@
         reminderTime: "19:30",
         totalCheckins: 0,
         streak: 0,
+        bestStreak: 0,
         lastActiveDate: "",
         notes: {},
         history: [],
@@ -456,7 +440,19 @@
       } else {
         state.streak = 1;
       }
+
+      if (state.streak > (state.bestStreak || 0)) {
+        state.bestStreak = state.streak;
+      }
+
       state.lastActiveDate = todayStr;
+    }
+
+    function getTotalCheckinDays() {
+      return Object.keys(state.todayRecords || {}).filter(date => {
+        const record = state.todayRecords[date] || {};
+        return exercises.some(name => !!record[name]);
+      }).length;
     }
 
     function addHistory(text) {
@@ -471,8 +467,9 @@
       const today = new Date();
       document.getElementById("todayLine").textContent = `今天是 ${today.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" })}`;
       document.getElementById("streakValue").textContent = `${state.streak} 天`;
+      document.getElementById("bestStreakValue").textContent = `${state.bestStreak || 0} 天`;
       document.getElementById("doneCount").textContent = `${getDoneCount()} / 4`;
-      document.getElementById("totalValue").textContent = String(state.totalCheckins);
+      document.getElementById("totalDaysValue").textContent = `${getTotalCheckinDays()} 天`;
       document.getElementById("dailyMessage").textContent = randomPick(motivationalLines);
       document.getElementById("reminderTime").value = state.reminderTime || "19:30";
     }
